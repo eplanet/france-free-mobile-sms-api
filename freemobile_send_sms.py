@@ -9,6 +9,14 @@ import os
 import pwd
 import sys
 
+# Le code de retour HTTP indique le succès ou non de l'opération :
+return_keys = { 200: "Le SMS a été envoyé sur votre mobile.",
+               400: "Un des paramètres obligatoires est manquant.",
+               402: "Trop de SMS ont été envoyés en trop peu de temps.",
+               403: "Le service n'est pas activé sur l'Espace Abonné, ou login / clé incorrect.",
+               500: "Erreur côté serveur. Veuillez réessayer ultérieurement." }
+
+
 def change_user(user):
     try:
         newuid = pwd.getpwnam(user).pw_uid
@@ -39,7 +47,11 @@ def send_sms(msg, user=None):
     # on encode le tout et on crée l'url d'envoi
     goto = url + urllib.parse.urlencode(f)
     # on envoie
-    urllib.request.urlopen(goto)
+    try:
+        resp = urllib.request.urlopen(goto)
+    except urllib.error.HTTPError as e:
+        print(e.code, return_keys[e.code])
+
 
 if __name__ == "__main__":
 
